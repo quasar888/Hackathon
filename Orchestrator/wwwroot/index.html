@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Resilience Orchestrator - Dashboard</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f0f0f0; }
+        h1 { color: #333; }
+        .service { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .service h2 { margin-top: 0; color: #0078d4; }
+        .status { display: inline-block; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
+        .up { background: #d4edda; color: #155724; }
+        .down { background: #f8d7da; color: #721c24; }
+        button { background: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #005a9e; }
+        pre { background: #eee; padding: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Resilience Orchestrator Dashboard</h1>
+    <p>État des services et déclenchement d'alerte</p>
+
+    <div id="services"></div>
+
+    <h2>Déclencher une alerte inondation</h2>
+    <form id="alertForm">
+        <label>Zone : <input type="text" name="area" value="Quartier Nord"></label><br>
+        <label>Sévérité : 
+            <select name="severity">
+                <option value="haute">Haute</option>
+                <option value="moyenne">Moyenne</option>
+                <option value="basse">Basse</option>
+            </select>
+        </label><br>
+        <button type="submit">Envoyer l'alerte</button>
+    </form>
+
+    <h3>Résultat :</h3>
+    <pre id="result"></pre>
+
+    <script>
+        const services = [
+            { name: 'ResourceAgent', port: 9001 },
+            { name: 'VolunteerAgent', port: 9002 },
+            { name: 'AlertAgent', port: 9003 },
+            { name: 'CommunicationAgent', port: 9004 },
+            { name: 'PredictionService', port: 9005 },
+            { name: 'Orchestrator', port: 9000 }
+        ];
+
+        async function checkHealth() {
+            const container = document.getElementById('services');
+            container.innerHTML = '';
+            for (const svc of services) {
+                try {
+                    const res = await fetch(`http://localhost:${svc.port}/health`);
+                    const status = res.ok ? 'up' : 'down';
+                    container.innerHTML += `
+                        <div class="service">
+                            <h2>${svc.name}</h2>
+                            <div><span class="status ${status}">${status.toUpperCase()}</span> sur port ${svc.port}</div>
+                        </div>
+                    `;
+                } catch {
+                    container.innerHTML += `
+                        <div class="service">
+                            <h2>${svc.name}</h2>
+                            <div><span class="status down">DOWN</span> sur port ${svc.port}</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        document.getElementById('alertForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const alert = {
+                area: formData.get('area'),
+                severity: formData.get('severity'),
+                timestamp: new Date().toISOString()
+            };
+            document.getElementById('result').textContent = 'Envoi...';
+            try {
+                const res = await fetch('http://localhost:9000/api/orchestrator/flood', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alert)
+                });
+                const data = await res.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                document.getElementById('result').textContent = 'Erreur : ' + err;
+            }
+        });
+
+        checkHealth();
+        setInterval(checkHealth, 10000);
+    </script>
+</body>
+</html>
+
+
+
+
