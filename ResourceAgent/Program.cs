@@ -24,7 +24,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient("PredictionService", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:9005/");
+    client.BaseAddress = new Uri("http://localhost:5001/");
     client.Timeout = TimeSpan.FromSeconds(5);
 })
 .AddPolicyHandler(GetRetryPolicy())
@@ -37,7 +37,7 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
     HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(2, TimeSpan.FromSeconds(30));
 
 builder.Services.AddHealthChecks()
-    .AddUrlGroup(new Uri("http://localhost:9005/health"), "PredictionService");
+    .AddUrlGroup(new Uri("http://localhost:5001/health"), "PredictionService");
 
 var app = builder.Build();
 
@@ -53,6 +53,7 @@ app.MapHealthChecks("/health");
 app.MapHealthChecks("/health/ready");
 
 app.Run();
+
 
 
 

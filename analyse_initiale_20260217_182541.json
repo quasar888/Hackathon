@@ -1,0 +1,12 @@
+{
+    "TotalRequests":  100,
+    "Concurrency":  10,
+    "SuccessCount":  0,
+    "ErrorCount":  0,
+    "SuccessRate":  "0,00 %",
+    "TotalTimeSec":  1.9058555,
+    "AvgDurationMs":  0,
+    "MinDurationMs":  null,
+    "MaxDurationMs":  null,
+    "StdDevMs":  0
+}

@@ -9,7 +9,7 @@ class Program
     {
         Console.WriteLine("Lancement de tous les services...");
 
-        // Trouver le répertoire racine de la solution (celui qui contient le fichier .sln)
+        // Trouver le répertoire racine de la solution
         string baseDir = AppContext.BaseDirectory;
         string solutionDir = baseDir;
         while (solutionDir != null && !Directory.GetFiles(solutionDir, "*.sln").Any())
@@ -23,22 +23,30 @@ class Program
         }
         Console.WriteLine($"Racine de la solution : {solutionDir}");
 
-        var services = new[] { "ResourceAgent", "VolunteerAgent", "AlertAgent", "CommunicationAgent", "PredictionService", "Orchestrator" };
-        int port = 5000;
+        int basePort = 5000; // Port de base (orchestrateur)
+        var services = new[]
+        {
+            new { Name = "Orchestrator", Port = basePort },
+            new { Name = "ResourceAgent", Port = basePort + 1 },
+            new { Name = "VolunteerAgent", Port = basePort + 2 },
+            new { Name = "AlertAgent", Port = basePort + 3 },
+            new { Name = "CommunicationAgent", Port = basePort + 4 },
+            new { Name = "PredictionService", Port = basePort + 5 }
+        };
+
         foreach (var svc in services)
         {
-            int svcPort = svc == "Orchestrator" ? port : ++port;
-            string csprojPath = Path.Combine(solutionDir, svc, $"{svc}.csproj");
+            string csprojPath = Path.Combine(solutionDir, svc.Name, $"{svc.Name}.csproj");
             if (!File.Exists(csprojPath))
             {
                 Console.WriteLine($"Fichier projet introuvable : {csprojPath}");
                 continue;
             }
-            Console.WriteLine($"Démarrage de {svc} sur le port {svcPort}...");
+            Console.WriteLine($"Démarrage de {svc.Name} sur le port {svc.Port}...");
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"run --project \"{csprojPath}\" --urls=http://localhost:{svcPort}",
+                Arguments = $"run --project \"{csprojPath}\" --urls=http://localhost:{svc.Port}",
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WindowStyle = ProcessWindowStyle.Normal
@@ -53,7 +61,7 @@ class Program
         var alert = new { area = "Quartier Nord", severity = "haute", timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") };
         try
         {
-            var response = await client.PostAsJsonAsync("http://localhost:9000/api/orchestrator/flood", alert);
+            var response = await client.PostAsJsonAsync($"http://localhost:{basePort}/api/orchestrator/flood", alert);
             var result = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"Réponse de l'orchestrateur : {result}");
         }
@@ -70,7 +78,3 @@ class Program
         }
     }
 }
-
-
-
-

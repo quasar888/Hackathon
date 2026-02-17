@@ -22,7 +22,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient("ResourceAgent", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:9001/");
+    client.BaseAddress = new Uri("http://localhost:5000/");
     client.Timeout = TimeSpan.FromSeconds(5);
 })
 .AddPolicyHandler(GetRetryPolicy())
@@ -30,7 +30,7 @@ builder.Services.AddHttpClient("ResourceAgent", client =>
 
 builder.Services.AddHttpClient("VolunteerAgent", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:9002/");
+    client.BaseAddress = new Uri("http://localhost:5000/");
     client.Timeout = TimeSpan.FromSeconds(5);
 })
 .AddPolicyHandler(GetRetryPolicy())
@@ -38,7 +38,7 @@ builder.Services.AddHttpClient("VolunteerAgent", client =>
 
 builder.Services.AddHttpClient("CommunicationAgent", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:9004/");
+    client.BaseAddress = new Uri("http://localhost:5000/");
     client.Timeout = TimeSpan.FromSeconds(5);
 })
 .AddPolicyHandler(GetRetryPolicy())
@@ -51,11 +51,11 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
     HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(2, TimeSpan.FromSeconds(30));
 
 builder.Services.AddHealthChecks()
-    .AddUrlGroup(new Uri("http://localhost:9001/health"), "ResourceAgent")
-    .AddUrlGroup(new Uri("http://localhost:9002/health"), "VolunteerAgent")
-    .AddUrlGroup(new Uri("http://localhost:9003/health"), "AlertAgent")
-    .AddUrlGroup(new Uri("http://localhost:9004/health"), "CommunicationAgent")
-    .AddUrlGroup(new Uri("http://localhost:9005/health"), "PredictionService");
+    .AddUrlGroup(new Uri("http://localhost:5000/health"), "ResourceAgent")
+    .AddUrlGroup(new Uri("http://localhost:5000/health"), "VolunteerAgent")
+    .AddUrlGroup(new Uri("http://localhost:5000/health"), "AlertAgent")
+    .AddUrlGroup(new Uri("http://localhost:5000/health"), "CommunicationAgent")
+    .AddUrlGroup(new Uri("http://localhost:5000/health"), "PredictionService");
 
 var app = builder.Build();
 
@@ -72,6 +72,7 @@ app.MapHealthChecks("/health");
 app.MapHealthChecks("/health/ready");
 
 app.Run();
+
 
 
 

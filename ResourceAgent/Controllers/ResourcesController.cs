@@ -64,7 +64,7 @@ public class ResourcesController : ControllerBase
         try
         {
             var predictionResponse = await _circuitBreaker.ExecuteAsync(async () =>
-                await predictionClient.PostAsJsonAsync("http://localhost:9005/api/predict/forecast", request));
+                await predictionClient.PostAsJsonAsync("http://localhost:5005/api/predict/forecast", request));
 
             predictionResponse.EnsureSuccessStatusCode();
             var forecast = await predictionResponse.Content.ReadFromJsonAsync<ForecastResult>();
@@ -97,7 +97,20 @@ public class ResourcesController : ControllerBase
 }
 
 public class ReserveRequest { public int ResourceId { get; set; } public int Quantity { get; set; } public string AlertType { get; set; } = string.Empty; }
-public class ForecastResult { public int ExpectedDemand { get; set; } }
+public class ForecastResult { public int ExpectedDemand { get; set; } 
+    [HttpGet("stats")]
+    public async Task<ActionResult<object>> GetStats()
+    {
+        var all = await _context.Resources.ToListAsync();
+        return Ok(new {
+            total = all.Count,
+            available = all.Count(r => r.IsAvailable),
+            byType = all.GroupBy(r => r.Type).Select(g => new { type = g.Key, count = g.Count() })
+        });
+    }
+}
+
+
 
 
 
